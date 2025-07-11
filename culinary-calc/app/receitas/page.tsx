@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { ChefHat, Plus, Search, Clock, Users } from "lucide-react"
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 
 interface Recipe {
   id: string
@@ -25,6 +26,7 @@ export default function ReceitasPage() {
   const [recipes, setRecipes] = useState<Recipe[]>([])
   const [searchTerm, setSearchTerm] = useState("")
   const [loading, setLoading] = useState(true)
+  const router = useRouter()
 
   useEffect(() => {
     fetchRecipes()
@@ -32,41 +34,22 @@ export default function ReceitasPage() {
 
   const fetchRecipes = async () => {
     try {
-      // Dados simulados por enquanto
-      setRecipes([
-        {
-          id: "1",
-          name: "Pão Francês",
-          description: "Pão tradicional brasileiro",
-          servings: 20,
-          preparationTime: 180,
-          difficulty: "Médio",
-          finalCost: 15.5,
-          sellingPrice: 25.0,
-          profitMargin: 38,
-          isActive: true,
-        },
-        {
-          id: "2",
-          name: "Bolo de Chocolate",
-          description: "Bolo fofinho de chocolate",
-          servings: 12,
-          preparationTime: 90,
-          difficulty: "Fácil",
-          finalCost: 22.3,
-          sellingPrice: 45.0,
-          profitMargin: 50,
-          isActive: true,
-        },
-      ])
+      // Troque a URL abaixo pela rota real da sua API
+      const res = await fetch("/api/recipes")
+      if (!res.ok) throw new Error("Erro ao buscar receitas")
+      const data = await res.json()
+      setRecipes(data)
     } catch (error) {
       console.error("Erro ao carregar receitas:", error)
+      setRecipes([]) // Garante array vazio em caso de erro
     } finally {
       setLoading(false)
     }
   }
 
-  const filteredRecipes = recipes.filter((recipe) => recipe.name.toLowerCase().includes(searchTerm.toLowerCase()))
+  const filteredRecipes = recipes.filter((recipe) =>
+    recipe.name.toLowerCase().includes(searchTerm.toLowerCase())
+  )
 
   const getDifficultyColor = (difficulty?: string) => {
     switch (difficulty?.toLowerCase()) {
@@ -90,7 +73,10 @@ export default function ReceitasPage() {
             <h1 className="text-3xl font-bold text-white mb-2">Receitas</h1>
             <p className="text-indigo-100">Gerencie suas receitas e calcule custos</p>
           </div>
-          <Button className="bg-white text-indigo-500 hover:bg-indigo-50">
+          <Button
+            className="bg-white text-indigo-500 hover:bg-indigo-50"
+            onClick={() => router.push("/receitas/nova")}
+          >
             <Plus className="w-4 h-4 mr-2" />
             Nova Receita
           </Button>
@@ -138,7 +124,10 @@ export default function ReceitasPage() {
                 {searchTerm ? "Tente buscar com outros termos" : "Comece criando sua primeira receita"}
               </p>
               {!searchTerm && (
-                <Button className="bg-white text-indigo-500 hover:bg-indigo-50">
+                <Button
+                  className="bg-white text-indigo-500 hover:bg-indigo-50"
+                  onClick={() => router.push("/receitas/nova")}
+                >
                   <Plus className="w-4 h-4 mr-2" />
                   Criar Primeira Receita
                 </Button>
@@ -196,10 +185,19 @@ export default function ReceitasPage() {
                     </div>
 
                     <div className="flex gap-2 pt-3">
-                      <Button variant="outline" size="sm" className="flex-1 bg-transparent">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1 bg-transparent"
+                        onClick={() => router.push(`/receitas/${recipe.id}/editar`)}
+                      >
                         Editar
                       </Button>
-                      <Button size="sm" className="flex-1">
+                      <Button
+                        size="sm"
+                        className="flex-1"
+                        onClick={() => router.push(`/receitas/${recipe.id}`)}
+                      >
                         Ver Detalhes
                       </Button>
                     </div>
