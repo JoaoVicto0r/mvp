@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { Plus, Search, Building, Phone, Mail, MapPin, Edit, Trash2 } from "lucide-react"
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 
 interface Supplier {
   id: string
@@ -35,6 +36,7 @@ export default function FornecedorPage() {
     phone: "",
     address: "",
   })
+  const router = useRouter()
 
   useEffect(() => {
     fetchSuppliers()
@@ -42,42 +44,60 @@ export default function FornecedorPage() {
 
   const fetchSuppliers = async () => {
     try {
-      // Dados simulados por enquanto
-      setSuppliers([
-        {
-          id: "1",
-          name: "Distribuidora Pão & Cia",
-          contact: "João Silva",
-          email: "joao@paoecompanhia.com",
-          phone: "(11) 99999-9999",
-          address: "Rua das Padarias, 123 - São Paulo, SP",
-          isActive: true,
-          createdAt: "2024-01-15",
-        },
-        {
-          id: "2",
-          name: "Açúcar & Mel Ltda",
-          contact: "Maria Santos",
-          email: "maria@acucaremel.com",
-          phone: "(11) 88888-8888",
-          address: "Av. Doce Vida, 456 - São Paulo, SP",
-          isActive: true,
-          createdAt: "2024-01-20",
-        },
-      ])
+      const res = await fetch("/api/suppliers")
+      if (!res.ok) throw new Error("Erro ao buscar fornecedores")
+      const data = await res.json()
+      setSuppliers(data)
     } catch (error) {
       console.error("Erro ao carregar fornecedores:", error)
+      setSuppliers([])
     } finally {
       setLoading(false)
     }
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Implementar criação de fornecedor
-    console.log("Novo fornecedor:", formData)
-    setShowForm(false)
-    setFormData({ name: "", contact: "", email: "", phone: "", address: "" })
+    setLoading(true)
+    try {
+      const res = await fetch("/api/suppliers", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      })
+      if (res.ok) {
+        setFormData({ name: "", contact: "", email: "", phone: "", address: "" })
+        setShowForm(false)
+        fetchSuppliers()
+      } else {
+        alert("Erro ao criar fornecedor")
+      }
+    } catch (error) {
+      alert("Erro ao criar fornecedor")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleEdit = (id: string) => {
+    router.push(`/cadastro/fornecedor/${id}/editar`)
+  }
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Tem certeza que deseja excluir este fornecedor?")) return
+    setLoading(true)
+    try {
+      const res = await fetch(`/api/suppliers/${id}`, { method: "DELETE" })
+      if (res.ok) {
+        fetchSuppliers()
+      } else {
+        alert("Erro ao excluir fornecedor")
+      }
+    } catch (error) {
+      alert("Erro ao excluir fornecedor")
+    } finally {
+      setLoading(false)
+    }
   }
 
   const filteredSuppliers = suppliers.filter(
@@ -183,7 +203,7 @@ export default function FornecedorPage() {
                 </div>
 
                 <div className="flex gap-2">
-                  <Button type="submit">Salvar Fornecedor</Button>
+                  <Button type="submit" disabled={loading}>Salvar Fornecedor</Button>
                   <Button type="button" variant="outline" onClick={() => setShowForm(false)}>
                     Cancelar
                   </Button>
@@ -244,7 +264,7 @@ export default function FornecedorPage() {
                         <div className="flex items-center gap-2 mb-1">
                           <h3 className="font-semibold text-gray-900">{supplier.name}</h3>
                           <Badge variant="secondary" className="bg-green-100 text-green-800">
-                            Ativo
+                            {supplier.isActive ? "Ativo" : "Inativo"}
                           </Badge>
                         </div>
 
@@ -274,10 +294,15 @@ export default function FornecedorPage() {
                     </div>
 
                     <div className="flex gap-2">
-                      <Button variant="outline" size="sm">
+                      <Button variant="outline" size="sm" onClick={() => handleEdit(supplier.id)}>
                         <Edit className="w-4 h-4" />
                       </Button>
-                      <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700 bg-transparent">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-red-600 hover:text-red-700 bg-transparent"
+                        onClick={() => handleDelete(supplier.id)}
+                      >
                         <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>

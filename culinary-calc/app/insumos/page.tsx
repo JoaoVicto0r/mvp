@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Package, Plus, Search, AlertTriangle, TrendingDown, TrendingUp } from "lucide-react"
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 
 interface Ingredient {
   id: string
@@ -30,6 +31,7 @@ export default function InsumosPage() {
   const [ingredients, setIngredients] = useState<Ingredient[]>([])
   const [searchTerm, setSearchTerm] = useState("")
   const [loading, setLoading] = useState(true)
+  const router = useRouter()
 
   useEffect(() => {
     fetchIngredients()
@@ -37,47 +39,13 @@ export default function InsumosPage() {
 
   const fetchIngredients = async () => {
     try {
-      // Dados simulados por enquanto
-      setIngredients([
-        {
-          id: "1",
-          name: "Farinha de Trigo",
-          description: "Farinha especial para panificação",
-          unit: "kg",
-          unitCost: 4.5,
-          stock: 25.5,
-          minStock: 10,
-          isActive: true,
-          category: { name: "Farinhas", color: "#f59e0b" },
-          supplier: { name: "Distribuidora Pão & Cia" },
-        },
-        {
-          id: "2",
-          name: "Açúcar Cristal",
-          description: "Açúcar refinado especial",
-          unit: "kg",
-          unitCost: 3.2,
-          stock: 5.2,
-          minStock: 8,
-          isActive: true,
-          category: { name: "Açúcares", color: "#ef4444" },
-          supplier: { name: "Açúcar & Mel Ltda" },
-        },
-        {
-          id: "3",
-          name: "Leite Integral",
-          description: "Leite fresco integral",
-          unit: "L",
-          unitCost: 4.8,
-          stock: 12.0,
-          minStock: 5,
-          isActive: true,
-          category: { name: "Laticínios", color: "#3b82f6" },
-          supplier: { name: "Laticínios Frescos" },
-        },
-      ])
+      const res = await fetch("/api/ingredients")
+      if (!res.ok) throw new Error("Erro ao buscar insumos")
+      const data = await res.json()
+      setIngredients(data)
     } catch (error) {
       console.error("Erro ao carregar insumos:", error)
+      setIngredients([])
     } finally {
       setLoading(false)
     }
@@ -106,7 +74,10 @@ export default function InsumosPage() {
             <h1 className="text-3xl font-bold text-white mb-2">Insumos</h1>
             <p className="text-indigo-100">Gerencie seu estoque de ingredientes</p>
           </div>
-          <Button className="bg-white text-indigo-500 hover:bg-indigo-50">
+          <Button
+            className="bg-white text-indigo-500 hover:bg-indigo-50"
+            onClick={() => router.push("/insumos/novo")}
+          >
             <Plus className="w-4 h-4 mr-2" />
             Novo Insumo
           </Button>
@@ -197,7 +168,10 @@ export default function InsumosPage() {
                   {searchTerm ? "Tente buscar com outros termos" : "Comece adicionando seus primeiros insumos"}
                 </p>
                 {!searchTerm && (
-                  <Button className="bg-indigo-500 text-white hover:bg-indigo-600">
+                  <Button
+                    className="bg-indigo-500 text-white hover:bg-indigo-600"
+                    onClick={() => router.push("/insumos/novo")}
+                  >
                     <Plus className="w-4 h-4 mr-2" />
                     Adicionar Primeiro Insumo
                   </Button>
@@ -269,10 +243,19 @@ export default function InsumosPage() {
                         </div>
 
                         <div className="flex gap-2">
-                          <Button variant="outline" size="sm">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => router.push(`/insumos/${ingredient.id}/editar`)}
+                          >
                             Editar
                           </Button>
-                          <Button size="sm">Ajustar Estoque</Button>
+                          <Button
+                            size="sm"
+                            onClick={() => router.push(`/insumos/${ingredient.id}`)}
+                          >
+                            Ajustar Estoque
+                          </Button>
                         </div>
                       </div>
                     </div>

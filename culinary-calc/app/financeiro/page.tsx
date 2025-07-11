@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { DollarSign, TrendingUp, TrendingDown, PieChart, BarChart3, Download } from "lucide-react"
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 
 interface FinancialData {
   totalRevenue: number
@@ -23,6 +24,7 @@ export default function FinanceiroPage() {
     monthlyGrowth: 0,
   })
   const [loading, setLoading] = useState(true)
+  const router = useRouter()
 
   useEffect(() => {
     fetchFinancialData()
@@ -30,20 +32,33 @@ export default function FinanceiroPage() {
 
   const fetchFinancialData = async () => {
     try {
-      // Dados simulados por enquanto
-      setFinancialData({
-        totalRevenue: 15750.0,
-        totalCosts: 9450.0,
-        totalProfit: 6300.0,
-        profitMargin: 40,
-        monthlyGrowth: 12.5,
-      })
+      const res = await fetch("/api/financeiro")
+      if (!res.ok) throw new Error("Erro ao buscar dados financeiros")
+      const data = await res.json()
+      setFinancialData(data)
     } catch (error) {
       console.error("Erro ao carregar dados financeiros:", error)
+      setFinancialData({
+        totalRevenue: 0,
+        totalCosts: 0,
+        totalProfit: 0,
+        profitMargin: 0,
+        monthlyGrowth: 0,
+      })
     } finally {
       setLoading(false)
     }
   }
+
+  // Exemplo: receitas mais lucrativas viriam da API também
+  const topRecipes = [
+    // Remova ou troque por fetch real quando tiver endpoint
+    { name: "Bolo de Chocolate Premium", revenue: 2450.0, margin: 55, growth: 15 },
+    { name: "Pão Artesanal Integral", revenue: 1890.0, margin: 42, growth: 8 },
+    { name: "Croissant Francês", revenue: 1650.0, margin: 38, growth: 22 },
+    { name: "Torta de Frutas Vermelhas", revenue: 1420.0, margin: 48, growth: -3 },
+    { name: "Pão de Açúcar Tradicional", revenue: 1280.0, margin: 35, growth: 12 },
+  ]
 
   return (
     <DashboardLayout>
@@ -54,7 +69,10 @@ export default function FinanceiroPage() {
             <h1 className="text-3xl font-bold text-white mb-2">Financeiro</h1>
             <p className="text-indigo-100">Acompanhe a performance financeira do seu negócio</p>
           </div>
-          <Button className="bg-white text-indigo-500 hover:bg-indigo-50">
+          <Button
+            className="bg-white text-indigo-500 hover:bg-indigo-50"
+            onClick={() => router.push("/financeiro/relatorio")}
+          >
             <Download className="w-4 h-4 mr-2" />
             Exportar Relatório
           </Button>
@@ -162,13 +180,7 @@ export default function FinanceiroPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {[
-                { name: "Bolo de Chocolate Premium", revenue: 2450.0, margin: 55, growth: 15 },
-                { name: "Pão Artesanal Integral", revenue: 1890.0, margin: 42, growth: 8 },
-                { name: "Croissant Francês", revenue: 1650.0, margin: 38, growth: 22 },
-                { name: "Torta de Frutas Vermelhas", revenue: 1420.0, margin: 48, growth: -3 },
-                { name: "Pão de Açúcar Tradicional", revenue: 1280.0, margin: 35, growth: 12 },
-              ].map((recipe, index) => (
+              {topRecipes.map((recipe, index) => (
                 <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                   <div className="flex items-center gap-4">
                     <div className="w-8 h-8 bg-indigo-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
@@ -200,7 +212,9 @@ export default function FinanceiroPage() {
               <CardDescription>Analise a rentabilidade das suas receitas</CardDescription>
             </CardHeader>
             <CardContent>
-              <Button className="w-full">Ver Análise Completa</Button>
+              <Button className="w-full" onClick={() => router.push("/financeiro/analise")}>
+                Ver Análise Completa
+              </Button>
             </CardContent>
           </Card>
 
@@ -210,7 +224,11 @@ export default function FinanceiroPage() {
               <CardDescription>Simule cenários futuros de custos</CardDescription>
             </CardHeader>
             <CardContent>
-              <Button className="w-full bg-transparent" variant="outline">
+              <Button
+                className="w-full bg-transparent"
+                variant="outline"
+                onClick={() => router.push("/financeiro/projecao")}
+              >
                 Fazer Simulação
               </Button>
             </CardContent>
@@ -222,7 +240,11 @@ export default function FinanceiroPage() {
               <CardDescription>Gere relatórios detalhados</CardDescription>
             </CardHeader>
             <CardContent>
-              <Button className="w-full bg-transparent" variant="outline">
+              <Button
+                className="w-full bg-transparent"
+                variant="outline"
+                onClick={() => router.push("/financeiro/relatorio")}
+              >
                 <Download className="w-4 h-4 mr-2" />
                 Gerar Relatório
               </Button>

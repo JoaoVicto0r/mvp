@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { Plus, Search, Edit, Trash2, Tag } from "lucide-react"
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 
 interface Category {
   id: number
@@ -33,6 +34,7 @@ export default function CategoriaPage() {
     description: "",
     color: "#6366f1",
   })
+  const router = useRouter()
 
   useEffect(() => {
     fetchCategories()
@@ -40,50 +42,60 @@ export default function CategoriaPage() {
 
   const fetchCategories = async () => {
     try {
-      // Dados simulados por enquanto
-      setCategories([
-        {
-          id: 1,
-          name: "Farinhas",
-          description: "Diferentes tipos de farinhas",
-          color: "#f59e0b",
-          _count: { recipes: 5, ingredients: 3 },
-        },
-        {
-          id: 2,
-          name: "Açúcares",
-          description: "Açúcares e adoçantes",
-          color: "#ef4444",
-          _count: { recipes: 8, ingredients: 2 },
-        },
-        {
-          id: 3,
-          name: "Gorduras",
-          description: "Óleos, manteigas e gorduras",
-          color: "#10b981",
-          _count: { recipes: 3, ingredients: 4 },
-        },
-        {
-          id: 4,
-          name: "Laticínios",
-          description: "Leites, queijos e derivados",
-          color: "#3b82f6",
-          _count: { recipes: 6, ingredients: 5 },
-        },
-      ])
+      const res = await fetch("/api/categories")
+      if (!res.ok) throw new Error("Erro ao buscar categorias")
+      const data = await res.json()
+      setCategories(data)
     } catch (error) {
       console.error("Erro ao carregar categorias:", error)
+      setCategories([])
     } finally {
       setLoading(false)
     }
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    console.log("Nova categoria:", formData)
-    setShowForm(false)
-    setFormData({ name: "", description: "", color: "#6366f1" })
-    // Implementar criação de categoria
+    setLoading(true)
+    try {
+      const res = await fetch("/api/categories", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      })
+      if (res.ok) {
+        setFormData({ name: "", description: "", color: "#6366f1" })
+        setShowForm(false)
+        fetchCategories()
+      } else {
+        alert("Erro ao criar categoria")
+      }
+    } catch (error) {
+      alert("Erro ao criar categoria")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleEdit = (id: number) => {
+    router.push(`/cadastro/categoria/${id}/editar`)
+  }
+
+  const handleDelete = async (id: number) => {
+    if (!confirm("Tem certeza que deseja excluir esta categoria?")) return
+    setLoading(true)
+    try {
+      const res = await fetch(`/api/categories/${id}`, { method: "DELETE" })
+      if (res.ok) {
+        fetchCategories()
+      } else {
+        alert("Erro ao excluir categoria")
+      }
+    } catch (error) {
+      alert("Erro ao excluir categoria")
+    } finally {
+      setLoading(false)
+    }
   }
 
   const filteredCategories = categories.filter((category) =>
@@ -184,7 +196,9 @@ export default function CategoriaPage() {
                 </div>
 
                 <div className="flex gap-2">
-                  <Button type="submit">Salvar Categoria</Button>
+                  <Button type="submit" disabled={loading}>
+                    Salvar Categoria
+                  </Button>
                   <Button type="button" variant="outline" onClick={() => setShowForm(false)}>
                     Cancelar
                   </Button>
@@ -245,10 +259,15 @@ export default function CategoriaPage() {
                     </div>
 
                     <div className="flex gap-1">
-                      <Button variant="outline" size="sm">
+                      <Button variant="outline" size="sm" onClick={() => handleEdit(category.id)}>
                         <Edit className="w-4 h-4" />
                       </Button>
-                      <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700 bg-transparent">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-red-600 hover:text-red-700 bg-transparent"
+                        onClick={() => handleDelete(category.id)}
+                      >
                         <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>

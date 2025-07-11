@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { MessageSquare, Phone, Mail, FileText, HelpCircle, Send } from "lucide-react"
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 
 export default function SuportePage() {
   const [formData, setFormData] = useState({
@@ -17,11 +18,12 @@ export default function SuportePage() {
     message: "",
     priority: "medium",
   })
+  const [loading, setLoading] = useState(false)
+  const router = useRouter()
 
-  // Atualizar o handleSubmit para enviar o ticket para a API
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-
+    setLoading(true)
     try {
       const response = await fetch("/api/support", {
         method: "POST",
@@ -42,6 +44,8 @@ export default function SuportePage() {
     } catch (error) {
       console.error("Erro ao enviar ticket:", error)
       alert("Erro ao enviar solicitação")
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -63,7 +67,9 @@ export default function SuportePage() {
               <CardDescription>Converse conosco em tempo real</CardDescription>
             </CardHeader>
             <CardContent>
-              <Button className="w-full">Iniciar Chat</Button>
+              <Button className="w-full" onClick={() => router.push("/suporte/chat")}>
+                Iniciar Chat
+              </Button>
               <p className="text-xs text-center text-gray-500 mt-2">Disponível das 8h às 18h</p>
             </CardContent>
           </Card>
@@ -144,9 +150,9 @@ export default function SuportePage() {
                   />
                 </div>
 
-                <Button type="submit" className="w-full">
+                <Button type="submit" className="w-full" disabled={loading}>
                   <Send className="w-4 h-4 mr-2" />
-                  Enviar Solicitação
+                  {loading ? "Enviando..." : "Enviar Solicitação"}
                 </Button>
               </form>
             </CardContent>
@@ -209,32 +215,56 @@ export default function SuportePage() {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              <Button variant="outline" className="h-auto p-4 flex flex-col items-start bg-transparent">
+              <Button
+                variant="outline"
+                className="h-auto p-4 flex flex-col items-start bg-transparent"
+                onClick={() => router.push("/docs/guia-inicio")}
+              >
                 <h4 className="font-medium mb-1">Guia de Início Rápido</h4>
                 <p className="text-xs text-gray-500">Primeiros passos no sistema</p>
               </Button>
 
-              <Button variant="outline" className="h-auto p-4 flex flex-col items-start bg-transparent">
+              <Button
+                variant="outline"
+                className="h-auto p-4 flex flex-col items-start bg-transparent"
+                onClick={() => router.push("/docs/gestao-receitas")}
+              >
                 <h4 className="font-medium mb-1">Gestão de Receitas</h4>
                 <p className="text-xs text-gray-500">Como criar e gerenciar receitas</p>
               </Button>
 
-              <Button variant="outline" className="h-auto p-4 flex flex-col items-start bg-transparent">
+              <Button
+                variant="outline"
+                className="h-auto p-4 flex flex-col items-start bg-transparent"
+                onClick={() => router.push("/docs/controle-estoque")}
+              >
                 <h4 className="font-medium mb-1">Controle de Estoque</h4>
                 <p className="text-xs text-gray-500">Gerenciamento de insumos</p>
               </Button>
 
-              <Button variant="outline" className="h-auto p-4 flex flex-col items-start bg-transparent">
+              <Button
+                variant="outline"
+                className="h-auto p-4 flex flex-col items-start bg-transparent"
+                onClick={() => router.push("/docs/analise-financeira")}
+              >
                 <h4 className="font-medium mb-1">Análise Financeira</h4>
                 <p className="text-xs text-gray-500">Relatórios e indicadores</p>
               </Button>
 
-              <Button variant="outline" className="h-auto p-4 flex flex-col items-start bg-transparent">
+              <Button
+                variant="outline"
+                className="h-auto p-4 flex flex-col items-start bg-transparent"
+                onClick={() => router.push("/docs/calculadora-custos")}
+              >
                 <h4 className="font-medium mb-1">Calculadora de Custos</h4>
                 <p className="text-xs text-gray-500">Como usar a calculadora</p>
               </Button>
 
-              <Button variant="outline" className="h-auto p-4 flex flex-col items-start bg-transparent">
+              <Button
+                variant="outline"
+                className="h-auto p-4 flex flex-col items-start bg-transparent"
+                onClick={() => router.push("/docs/configuracoes-avancadas")}
+              >
                 <h4 className="font-medium mb-1">Configurações Avançadas</h4>
                 <p className="text-xs text-gray-500">Personalização do sistema</p>
               </Button>
