@@ -39,7 +39,7 @@ export default function InsumosPage() {
 
   const fetchIngredients = async () => {
     try {
-      const res = await fetch("/ingredients")
+      const res = await fetch("/insumos")
       if (!res.ok) throw new Error("Erro ao buscar insumos")
       const data = await res.json()
       setIngredients(data)
