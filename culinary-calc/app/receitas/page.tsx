@@ -35,7 +35,7 @@ export default function ReceitasPage() {
   const fetchRecipes = async () => {
     try {
       // Troque a URL abaixo pela rota real da sua API
-      const res = await fetch("/api/receitas")
+      const res = await fetch("/api/recipes")
       if (!res.ok) throw new Error("Erro ao buscar receitas")
       const data = await res.json()
       setRecipes(data)
