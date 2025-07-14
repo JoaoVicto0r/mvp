@@ -30,23 +30,28 @@ export default function NovoInsumoPage() {
   const [loading, setLoading] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    try {
-      const res = await fetch("/api/ingredients", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      })
-      if (!res.ok) throw new Error("Erro ao salvar insumo")
-      // Redireciona para a lista de insumos após salvar
-      router.push("/insumos")
-    } catch (error) {
-      alert("Erro ao salvar insumo")
-    } finally {
-      setLoading(false)
+  e.preventDefault()
+  setLoading(true)
+  try {
+    const dataToSend = {
+      ...formData,
+      unitCost: Number(formData.unitCost),
+      stock: Number(formData.stock),
+      minStock: Number(formData.minStock),
     }
+    const res = await fetch("/api/ingredients", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(dataToSend),
+    })
+    if (!res.ok) throw new Error("Erro ao salvar insumo")
+    router.push("/insumos")
+  } catch (error) {
+    alert("Erro ao salvar insumo")
+  } finally {
+    setLoading(false)
   }
+}
 
   return (
     <DashboardLayout>
