@@ -12,8 +12,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Package, ArrowLeft } from "lucide-react"
 import { useState } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 
 export default function NovoInsumoPage() {
+  const router = useRouter()
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -25,11 +27,25 @@ export default function NovoInsumoPage() {
     categoryId: "",
     supplierId: "",
   })
+  const [loading, setLoading] = useState(false)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    console.log("Novo insumo:", formData)
-    // Implementar criação do insumo
+    setLoading(true)
+    try {
+      const res = await fetch("/api/ingredients", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      })
+      if (!res.ok) throw new Error("Erro ao salvar insumo")
+      // Redireciona para a lista de insumos após salvar
+      router.push("/insumos")
+    } catch (error) {
+      alert("Erro ao salvar insumo")
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -204,11 +220,11 @@ export default function NovoInsumoPage() {
 
           {/* Botões */}
           <div className="flex gap-4">
-            <Button type="submit" className="bg-indigo-500 hover:bg-indigo-600">
-              Salvar Insumo
+            <Button type="submit" className="bg-indigo-500 hover:bg-indigo-600" disabled={loading}>
+              {loading ? "Salvando..." : "Salvar Insumo"}
             </Button>
             <Link href="/insumos">
-              <Button type="button" variant="outline">
+              <Button type="button" variant="outline" disabled={loading}>
                 Cancelar
               </Button>
             </Link>
